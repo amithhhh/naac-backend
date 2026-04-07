@@ -3,11 +3,13 @@ import jwt from 'jsonwebtoken'
 
 const authMiddleware = (req, res, next) => {
     try {
-        const token = req.headers.authorization;
+        const authHeader = req.headers.authorization;
 
-        if (!token) {
+        if (!authHeader) {
             return res.status(404).json({"message": "no token found"});
         }
+
+        const token = authHeader.split(" ")[1];
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
