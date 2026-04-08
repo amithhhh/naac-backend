@@ -8,30 +8,64 @@ const studentProfileSchema = new mongoose.Schema(
       required: true,
       unique: true
     },
-
-    department: {
+    admissionApplicationNumber: {
       type: String,
-      required: true
+      required: true,
+      unique: true
+    },
+    universityEnrollmentNumber: {
+      type: String,
+      required: true,
+      unique: true
+    },
+    rollNumber: {
+      type: String,
+      required: true,
+      unique: true
     },
 
-    academicYear: {
+    faculty: String,
+
+    programLevel: {
       type: String,
-      required: true
+      enum: ["Diploma", "UG", "PG", "M.Phil", "PhD", "PostDoc", "FYIMP"]
     },
 
-    program: {
+    degreeName: {
       type: String,
-      required: true
+      required: true,
+    },
+    specialization: {
+      type: String
     },
 
-    semester: {
+    thesisTopic: String,
+    researchSupervisor: String,
+
+    admissionBatch: String,
+    academicCycle: String,
+
+    currentYear: {
+      type: Date
+    },
+    currentSemester: {
       type: Number,
-      required: true
-    }
+      enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    },
+
+    modeOfStudy: {
+      type: String,
+      enum: ["Full-Time", "Part-Time", "Distance", "Executive"]
+    },
+
+    admissionCategory: {
+      type: String,
+      enum: ["Merit", "Entrance", "Management", "Sponsored", "International"]
+    },
+
+    fellowshipLetterNumber: String
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
 export default mongoose.model("StudentProfile", studentProfileSchema);

@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       match: [/^[0-9]{10}$/, "Invalid phone number"],
-      required: true
+       required: true
     },
     password: {
       type: String,
@@ -28,6 +28,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["student", "professor", "staff", "office"],
       default: "student"
+    },
+    canEdit: {
+      type: Boolean,
+      default: false
+    },
+
+    editApprovedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null
     },
   },
   {

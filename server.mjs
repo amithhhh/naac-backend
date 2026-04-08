@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from "./db/config.mjs";
 import authRouter from "./routes/auth.routes.mjs";
 import studentProfileRouter from "./routes/studentProfile.routes.mjs";
+import personalRouter from "./routes/personalDetails.routes.mjs";
 
 const app = express()
 app.use(cors());
@@ -15,7 +16,8 @@ connectDB()
 
 
 app.use("/api/auth", authRouter)
-app.use("/api/student", studentProfileRouter)
+app.use("/api/student/academic", studentProfileRouter)
+app.use("/api/student/personal", personalRouter)
 
 
 
