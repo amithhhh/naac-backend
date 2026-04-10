@@ -1,80 +1,69 @@
 import StudentProfile from "../models/StudentProfile.mjs";
+import Users from "../models/Users.mjs";
 
 export const CreateOrUpdate = async (req, res) => {
   try {
     if (req.user.role !== "student") {
-      return res.status(403).json({
-        message: "Only students are allowed"
-      });
+      return res.status(403).json({ message: "Only students allowed" });
+    }
+
+    let users = await Users.findById(req.user._id);
+
+    console.log(users.canEdit);
+
+    if (!users.canEdit || !users) {
+      return res.status(403).json({ message: "Editing not allowed" });
     }
 
     const userId = req.user._id;
 
-    const updateData = {};
+    const existingProfile = await StudentProfile.findOne({ userId });
 
-    if (req.body.admissionApplicationNumber)
-      updateData.admissionApplicationNumber = req.body.admissionApplicationNumber;
+    // First-time validation
+    const academic = req.body.academic_details;
 
-    if (req.body.universityEnrollmentNumber)
-      updateData.universityEnrollmentNumber = req.body.universityEnrollmentNumber;
+    if (!existingProfile) {
+      if (
+        !academic?.rollNumber ||
+        !academic?.admissionApplicationNumber ||
+        !academic?.universityEnrollmentNumber
+      ) {
+        return res.status(400).json({
+          message: "Academic identifiers required for first submission"
+        });
+      }
+    }
 
-    if (req.body.rollNumber)
-      updateData.rollNumber = req.body.rollNumber;
+    // Conditional validation
+    const health = req.body.health_details;
 
-    if (req.body.faculty)
-      updateData.faculty = req.body.faculty;
-
-    if (req.body.programLevel)
-      updateData.programLevel = req.body.programLevel;
-
-    if (req.body.degreeName)
-      updateData.degreeName = req.body.degreeName;
-
-    if (req.body.specialization)
-      updateData.specialization = req.body.specialization;
-
-    if (req.body.thesisTopic)
-      updateData.thesisTopic = req.body.thesisTopic;
-
-    if (req.body.researchSupervisor)
-      updateData.researchSupervisor = req.body.researchSupervisor;
-
-    if (req.body.admissionBatch)
-      updateData.admissionBatch = req.body.admissionBatch;
-
-    if (req.body.academicCycle)
-      updateData.academicCycle = req.body.academicCycle;
-
-    if (req.body.currentYear)
-      updateData.currentYear = req.body.currentYear;
-
-    if (req.body.currentSemester)
-      updateData.currentSemester = req.body.currentSemester;
-
-    if (req.body.modeOfStudy)
-      updateData.modeOfStudy = req.body.modeOfStudy;
-
-    if (req.body.admissionCategory)
-      updateData.admissionCategory = req.body.admissionCategory;
-
-    if (req.body.fellowshipLetterNumber)
-      updateData.fellowshipLetterNumber = req.body.fellowshipLetterNumber;
+    if (
+      health?.disabilityStatus === true &&
+      (!health?.disabilityDetails || health.disabilityDetails.trim() === "")
+    ) {
+      return res.status(400).json({
+        message: "Disability details required"
+      });
+    }
 
     const profile = await StudentProfile.findOneAndUpdate(
       { userId },
-      { $set: updateData },
-      { new: true, upsert: true }
+      { $set: req.body },
+      { new: true, upsert: true, runValidators: true }
     );
 
-    res.json({
-      message: "Student profile saved",
+    // Disable edit after update
+    await Users.findByIdAndUpdate(userId, { canEdit: false });
+
+    res.status(200).json({
+      message: "Profile saved successfully",
       profile
     });
 
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
-        message: "Duplicate value detected (must be unique)",
+        message: "Duplicate value detected",
         field: Object.keys(error.keyValue)
       });
     }
@@ -84,20 +73,14 @@ export const CreateOrUpdate = async (req, res) => {
 };
 
 export const GetAcademicDetails = async (req, res) => {
-    try {
-        const id = req.user._id;
+  try {
+    const user = await StudentProfile.findOne({userId: req.user._id});
 
-        const user = await StudentProfile.findOne({userId: id})
-
-        if (!user) {
-            return res.status(404).json({"message":"User Does not exist"});
-        }
-
-        res.status(200).json({
-            "message": "Successful",
-            "academic_details": user
-        })
-    } catch (error) {
-        return res.status(500).json({"message": "server error"})
+    if (!user) {
+      return res.status(403).json({ message: "User does not exist"});
     }
+    res.status(200).json({ message: "Only students allowed", user});
+  } catch (error) {
+    return res.status(403).json({ message: "Something fishy...!" });
+  }
 }

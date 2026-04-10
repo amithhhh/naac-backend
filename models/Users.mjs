@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
     },
     canEdit: {
       type: Boolean,
-      default: false
+      default: true
     },
 
     editApprovedBy: {

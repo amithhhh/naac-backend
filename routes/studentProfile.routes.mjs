@@ -5,7 +5,7 @@ import { CreateOrUpdate, GetAcademicDetails } from "../controllers/studentProfil
 
 const studentProfileRouter = Router();
 
-studentProfileRouter.post("/academic-profile", authMiddleware, CreateOrUpdate);
-studentProfileRouter.get("/academic-profile", authMiddleware, GetAcademicDetails)
+studentProfileRouter.post("/profile", authMiddleware, CreateOrUpdate);
+studentProfileRouter.get("/profile", authMiddleware, GetAcademicDetails)
 
 export default studentProfileRouter;
