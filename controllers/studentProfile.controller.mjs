@@ -7,19 +7,16 @@ export const CreateOrUpdate = async (req, res) => {
       return res.status(403).json({ message: "Only students allowed" });
     }
 
-    let users = await Users.findById(req.user._id);
+    const userId = req.user._id;
 
-    console.log(users.canEdit);
+    const users = await Users.findById(userId);
 
-    if (!users.canEdit || !users) {
+    if (!users || !users.canEdit) {
       return res.status(403).json({ message: "Editing not allowed" });
     }
 
-    const userId = req.user._id;
-
     const existingProfile = await StudentProfile.findOne({ userId });
 
-    // First-time validation
     const academic = req.body.academic_details;
 
     if (!existingProfile) {
@@ -34,15 +31,57 @@ export const CreateOrUpdate = async (req, res) => {
       }
     }
 
-    // Conditional validation
-    const health = req.body.health_details;
+    // const health = req.body.health_details;
 
-    if (
-      health?.disabilityStatus === true &&
-      (!health?.disabilityDetails || health.disabilityDetails.trim() === "")
-    ) {
+    // if (
+    //   health?.disabilityStatus === true &&
+    //   (!health?.disabilityDetails || health.disabilityDetails.trim() === "")
+    // ) {
+    //   return res.status(400).json({
+    //     message: "Disability details required"
+    //   });
+    // }
+
+    const admissionNumber = academic?.admissionApplicationNumber;
+    const enrollmentNumber = academic?.universityEnrollmentNumber;
+    const rollNumber = academic?.rollNumber;
+
+    let errors = {};
+
+    if (admissionNumber) {
+      const existing = await StudentProfile.findOne({
+        "academic_details.admissionApplicationNumber": admissionNumber
+      });
+
+      if (existing && existing.userId.toString() !== userId.toString()) {
+        errors.admissionApplicationNumber = "Already exists";
+      }
+    }
+
+    if (enrollmentNumber) {
+      const existing = await StudentProfile.findOne({
+        "academic_details.universityEnrollmentNumber": enrollmentNumber
+      });
+
+      if (existing && existing.userId.toString() !== userId.toString()) {
+        errors.universityEnrollmentNumber = "Already exists";
+      }
+    }
+
+    if (rollNumber) {
+      const existing = await StudentProfile.findOne({
+        "academic_details.rollNumber": rollNumber
+      });
+
+      if (existing && existing.userId.toString() !== userId.toString()) {
+        errors.rollNumber = "Already exists";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
       return res.status(400).json({
-        message: "Disability details required"
+        message: "Duplicate fields",
+        errors
       });
     }
 
@@ -52,7 +91,6 @@ export const CreateOrUpdate = async (req, res) => {
       { new: true, upsert: true, runValidators: true }
     );
 
-    // Disable edit after update
     await Users.findByIdAndUpdate(userId, { canEdit: false });
 
     res.status(200).json({
@@ -71,16 +109,3 @@ export const CreateOrUpdate = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-export const GetAcademicDetails = async (req, res) => {
-  try {
-    const user = await StudentProfile.findOne({userId: req.user._id});
-
-    if (!user) {
-      return res.status(403).json({ message: "User does not exist"});
-    }
-    res.status(200).json({ message: "Only students allowed", user});
-  } catch (error) {
-    return res.status(403).json({ message: "Something fishy...!" });
-  }
-}

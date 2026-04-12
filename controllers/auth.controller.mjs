@@ -10,7 +10,12 @@ export const register = async (req, res) => {
         console.log(req.body);
         const data = req.body;
 
-        const existingUser = await Users.findOne({ email: data.email });
+        const existingUser = await Users.findOne({
+            $or: [
+                { email: req.body.email },
+                { phone: req.body.phone }
+            ]
+        });
 
         if (existingUser) {
             return res.status(400).json({ "message": "User already exists" });
@@ -66,7 +71,7 @@ export const login = async (req, res) => {
             { expiresIn: "1d" }
         )
 
-         res.json({
+        res.json({
             token,
             user: {
                 id: user._id,
@@ -77,5 +82,42 @@ export const login = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+}
+
+
+export const ResetPassword = async (req, res) => {
+    try {
+        const user = await Users.findById(req.user._id).select("+password");
+
+        if (!user) {
+            return res.status(400).json({ "message": "sorry user does not exist" });
+        }
+
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ "message": "Missing fields" });
+        }
+
+        const isMatch = bcrypt.compare(currentPassword, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ "message": "Wrong current password" });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ "message": "Password mismatch" });
+        }
+
+        const hashedPassword = await bcrypt.hashSync(newPassword, 10);
+
+        user.password = hashedPassword;
+
+        await user.save();
+
+        res.status(200).json({ "message": "success" });
+    } catch (error) {
+        return res.status(500).json({ "message": "Internel server error" })
     }
 }

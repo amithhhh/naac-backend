@@ -19,3 +19,9 @@ export const requestAccess = async (req, res) => {
         return res.status(400).json({"message":"Something fishy."})
     }
 }
+
+// export const approveEdit = async (req, res) => {
+//     try {
+
+//     }
+// }

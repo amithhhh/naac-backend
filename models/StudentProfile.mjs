@@ -115,16 +115,8 @@ const studentProfileSchema = new mongoose.Schema(
         number: String
       },
 
-      personalEmail: {
-        type: String,
-        lowercase: true,
-        trim: true
-      },
-      institutionalEmail: {
-        type: String,
-        lowercase: true,
-        trim: true
-      },
+      personalEmail: String,
+      institutionalEmail: String,
 
       emergencyContact: {
         name: String,
@@ -409,7 +401,7 @@ const studentProfileSchema = new mongoose.Schema(
       ],
 
       identityProof: {
-        proofType: {
+        type: {
           type: String,
           enum: ["Aadhaar", "Passport", "Driving License", "Voter ID"]
         },
@@ -422,53 +414,10 @@ const studentProfileSchema = new mongoose.Schema(
         nonCreamyLayerCertificate: String,
         nativityCertificate: String
       }
-    },
-    hod_details: {
-      hod: {
-        name: String,
-        email: {
-          type: String,
-          lowercase: true,
-          trim: true
-        }
-      },
-      tutors: [
-        {
-          name: String,
-          email: {
-            type: String,
-            lowercase: true,
-            trim: true
-          }
-        }
-      ]
     }
 
   },
   { timestamps: true }
 );
-
-// Academic unique fields
-studentProfileSchema.index(
-  { "academic_details.rollNumber": 1 },
-  { unique: true, sparse: true }
-);
-
-studentProfileSchema.index(
-  { "academic_details.admissionApplicationNumber": 1 },
-  { unique: true, sparse: true }
-);
-
-studentProfileSchema.index(
-  { "academic_details.universityEnrollmentNumber": 1 },
-  { unique: true, sparse: true }
-);
-
-// Aadhaar
-studentProfileSchema.index(
-  { "personal_details.aadhaarNumber": 1 },
-  { unique: true, sparse: true }
-);
-
 
 export default mongoose.model("StudentProfile", studentProfileSchema);
