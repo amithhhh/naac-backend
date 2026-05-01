@@ -76,8 +76,9 @@ export const login = async (req, res) => {
 
         await user.save();
 
-        await sendOTP(email, otp);
-
+        sendOTP(email, otp).catch(err => {
+  		console.error("OTP send failed:", err);
+	});
         res.status(201).json({"message": "otp sent successfully"});
 
     } catch (error) {
