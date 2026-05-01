@@ -1,6 +1,7 @@
 import Users from "../models/Users.mjs";
 import jwt from 'jsonwebtoken';
 import bcrypt from "bcryptjs";
+import { sendOTP } from "../utils/sendEmail.mjs";
 
 
 //register controller
@@ -65,21 +66,20 @@ export const login = async (req, res) => {
             return res.status(400).json({ "message": "Wrong password" });
         }
 
-        const token = jwt.sign(
-            { _id: user._id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" }
-        )
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        res.json({
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                role: user.role,
-                canEdit: user.canEdit
-            }
-        });
+        const hashedOTP = bcrypt.hashSync(otp, 10);
+
+        user.otp = hashedOTP;
+
+        user.otpExpiry = Date.now() + 5 * 60 * 1000;
+
+        await user.save();
+
+        await sendOTP(email, otp);
+
+        res.status(201).json({"message": "otp sent successfully"});
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

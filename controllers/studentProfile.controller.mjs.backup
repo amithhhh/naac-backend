@@ -8,7 +8,7 @@ export const CreateOrUpdate = async (req, res) => {
     }
 
     const userId = req.user._id;
-    const files = req.files || {}; // ✅ changed
+    const file = req.file;
     const users = await Users.findById(userId);
 
     if (!users || !users.canEdit) {
@@ -30,6 +30,17 @@ export const CreateOrUpdate = async (req, res) => {
         });
       }
     }
+
+    // const health = req.body.health_details;
+
+    // if (
+    //   health?.disabilityStatus === true &&
+    //   (!health?.disabilityDetails || health.disabilityDetails.trim() === "")
+    // ) {
+    //   return res.status(400).json({
+    //     message: "Disability details required"
+    //   });
+    // }
 
     const admissionNumber = academic?.admissionApplicationNumber;
     const enrollmentNumber = academic?.universityEnrollmentNumber;
@@ -76,49 +87,26 @@ export const CreateOrUpdate = async (req, res) => {
 
     let updateData = {};
 
-    // ✅ academic fields
-    if (req.body.academic_details) {
-      for (let key in req.body.academic_details) {
-        updateData[`academic_details.${key}`] =
-          req.body.academic_details[key];
-      }
-    }
+// ✅ map fields manually (safe way)
+if (req.body.academic_details) {
+  for (let key in req.body.academic_details) {
+    updateData[`academic_details.${key}`] = req.body.academic_details[key];
+  }
+}
 
-    // ✅ personal fields (ADD THIS)
-    if (req.body.personal_details) {
-      for (let key in req.body.personal_details) {
-        updateData[`personal_details.${key}`] =
-          req.body.personal_details[key];
-      }
-    }
+// ✅ file handling
+if (req.file) {
+  updateData["academic_details.fellowshipLetter"] = {
+    url: req.file.path,
+    public_id: req.file.filename,
+  };
+}
 
-    // =========================
-    // ✅ FILE HANDLING (UPDATED)
-    // =========================
-
-    // fellowshipLetter (academic)
-    if (files.fellowshipLetter) {
-      updateData["academic_details.fellowshipLetter"] =
-        files.fellowshipLetter[0].path;
-    }
-
-    // passportDoc (personal)
-    if (files.passportDoc) {
-      updateData["personal_details.passportDoc"] =
-        files.passportDoc[0].path;
-    }
-
-    // visaDoc (personal)
-    if (files.visaDoc) {
-      updateData["personal_details.visaDoc"] =
-        files.visaDoc[0].path;
-    }
-
-    const profile = await StudentProfile.findOneAndUpdate(
-      { userId },
-      { $set: updateData },
-      { new: true, upsert: true, runValidators: true }
-    );
+const profile = await StudentProfile.findOneAndUpdate(
+  { userId },
+  { $set: updateData },
+  { new: true, upsert: true, runValidators: true }
+);
 
     await Users.findByIdAndUpdate(userId, { canEdit: false });
 

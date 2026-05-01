@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+
 const studentProfileSchema = new mongoose.Schema(
   {
     userId: {
@@ -47,7 +48,11 @@ const studentProfileSchema = new mongoose.Schema(
         enum: ["Merit", "Entrance", "Management", "Sponsored", "International"]
       },
 
-      fellowshipLetterNumber: String
+      fellowshipLetterNumber: String,
+      fellowshipLetter: {
+		url: String,
+		public_id: String
+      }
     },
 
     personal_details: {
@@ -84,14 +89,15 @@ const studentProfileSchema = new mongoose.Schema(
       motherTongue: String,
 
       languagesKnown: [String],
-
+      socialCategory: String,
       aadhaarNumber: {
         type: String,
         match: [/^\d{12}$/, "Aadhaar must be 12 digits"]
       },
 
       passportNumber: String,
-
+      passportDoc: String,
+      passportExpiry: String,
       visaDetails: {
         visaType: String,
         visaNumber: String,
@@ -102,7 +108,9 @@ const studentProfileSchema = new mongoose.Schema(
           type: String,
           enum: ["Active", "Expired", "Pending"]
         }
-      }
+      },
+       visaDoc: String,
+	birthCertificateDoc: String,
     },
     contact_details: {
       personalMobile: {

@@ -21,6 +21,13 @@ app.use("/api/student/", studentProfileRouter)
 app.use("/api/privilege/", requestAccessRouter)
 app.use("/", searchRouter);
 
+app.use((err, req, res, next) => {
+  console.error("ERROR:", err);
+
+  res.status(400).json({
+    message: err.message || "Something went wrong",
+  });
+});
 
 
 app.listen(process.env.PORT, (req, res) => {
