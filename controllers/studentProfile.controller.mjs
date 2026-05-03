@@ -8,7 +8,7 @@ export const CreateOrUpdate = async (req, res) => {
     }
 
     const userId = req.user._id;
-    const files = req.files || {}; // ✅ changed
+    const files = req.files || {}; 
     const users = await Users.findById(userId);
 
     if (!users || !users.canEdit) {

@@ -1,28 +1,43 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "./cloudinary.mjs";
+import fs from "fs";
+import path from "path";
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => {
-    const isPdf = file.mimetype === "application/pdf";
-    
-    // Clean filename: remove spaces/special chars to prevent URL issues
-    const cleanFileName = file.originalname
-      .split('.')[0]
-      .replace(/[^a-z0-9]/gi, '_')
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const username = req.user._id;
+
+    if (!username) {
+      return cb(new Error("Please Login"), null);
+    }
+
+    const userFolder = path.join("uploads", username);
+
+    fs.mkdirSync(userFolder, {recursive: true});
+    cb(null, userFolder);
+  },
+  filename: (req, file, cb) => {
+    const username = req.user._id;
+
+    const ext = path.extname(file.originalname);
+
+    // clean original name
+    const cleanName = path
+      .basename(file.originalname, ext)
+      .replace(/[^a-z0-9]/gi, "_")
       .toLowerCase();
 
-    return {
-      folder: "uploads",
-      // Keep PDF as 'raw' and images as 'image'
-      resource_type: isPdf ? "raw" : "image",
-      public_id: `${Date.now()}-${cleanFileName}`,
-      // Force format for raw files helps Cloudinary manage extensions
-      format: isPdf ? "pdf" : "png", 
-    };
-  },
+    let fileName;
+
+    if (file.mimetype === "application/pdf") {
+      fileName = `${username}_${cleanName}.pdf`;
+    } else {
+      fileName = `${username}_${cleanName}${ext}`;
+    }
+
+    cb(null, fileName);
+  }
 });
+
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
@@ -30,8 +45,7 @@ const fileFilter = (req, file, cb) => {
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    // Passing a descriptive error that your Express error handler can catch
-    cb(new Error("Invalid file type. Only JPG, PNG, and PDF are accepted."), false);
+    cb(new Error("Only JPG, PNG, PDF allowed"), false);
   }
 };
 
@@ -39,7 +53,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB
+    fileSize: 2 * 1024 * 1024,
   },
 });
 

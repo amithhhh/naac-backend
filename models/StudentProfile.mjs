@@ -50,8 +50,8 @@ const studentProfileSchema = new mongoose.Schema(
 
       fellowshipLetterNumber: String,
       fellowshipLetter: {
-		url: String,
-		public_id: String
+        url: String,
+        public_id: String
       }
     },
 
@@ -109,10 +109,22 @@ const studentProfileSchema = new mongoose.Schema(
           enum: ["Active", "Expired", "Pending"]
         }
       },
-       visaDoc: String,
-	birthCertificateDoc: String,
+      visaDoc: String,
+      birthCertificateDoc: String,
     },
     contact_details: {
+      personalEmail: {
+        type: String,
+        required: true,
+        lowercase: true,
+        match: [/^\S+@\S+\.\S+$/, "Invalid email format"]
+      },
+      institutionalEmail: {
+
+        type: String,
+        lowercase: true,
+        match: [/^\S+@\S+\.\S+$/, "Invalid email format"]
+      },
       personalMobile: {
         countryCode: String,
         number: String
@@ -123,8 +135,6 @@ const studentProfileSchema = new mongoose.Schema(
         number: String
       },
 
-      personalEmail: String,
-      institutionalEmail: String,
 
       emergencyContact: {
         name: String,
@@ -160,7 +170,12 @@ const studentProfileSchema = new mongoose.Schema(
       },
 
       physicalDimensions: {
-        type: String
+        height: {
+          type: String
+        },
+        weight: {
+          type: String
+        }
       },
 
       disabilityStatus: {
@@ -169,7 +184,14 @@ const studentProfileSchema = new mongoose.Schema(
       },
 
       disabilityDetails: {
-        type: String
+        disabilityType: {
+          type: String
+        },
+        percentage: {
+          type: Number,
+          min: 0,
+          max: 100
+        }
       },
 
       disabilityCertificate: {
@@ -191,6 +213,9 @@ const studentProfileSchema = new mongoose.Schema(
 
       vaccinationStatus: {
         type: String
+      },
+      vaccinationDoc: {
+        type: String
       }
     },
     family_details: {
@@ -211,7 +236,8 @@ const studentProfileSchema = new mongoose.Schema(
       siblings: [
         {
           name: String,
-          educationStatus: String
+          educationStatus: String,
+          email: String
         }
       ],
 
@@ -237,39 +263,58 @@ const studentProfileSchema = new mongoose.Schema(
       }
     },
     education_details: {
-      tenth: {
-        board: String,
-        school: String,
-        year: String,
-        percentage: Number,
-        marksheet: String   // file path / URL
-      },
-
-      twelfth: {
-        board: String,
-        stream: String,
-        school: String,
-        year: String,
-        marksheet: String
-      },
-
-      ug: {
-        university: String,
-        degree: String,
-        cgpa: Number,
-        certificate: String
-      },
-
-      pg: {
-        university: String,
-        cgpa: Number,
-        certificate: String
-      },
-
-      certifications: [
+      education: [
         {
-          name: String,
-          file: String
+          qualType: {
+            type: String,
+            required: true,
+            trim: true
+          },
+
+          stream: {
+            type: String,
+            trim: true
+          },
+
+          regNo: {
+            type: String,
+            trim: true
+          },
+
+          board: {
+            type: String,
+            trim: true
+          },
+
+          institution: {
+            type: String,
+            trim: true
+          },
+
+          passMonth: {
+            type: String,
+            enum: [
+              "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            ]
+          },
+
+          passYear: {
+            type: Number,
+            min: 1900,
+            max: 2100
+          },
+
+          percentage: {
+            type: Number,
+            min: 0,
+            max: 100
+          },
+
+          documentUrl: {
+            type: String,
+            default: ""
+          }
         }
       ],
 
@@ -280,11 +325,12 @@ const studentProfileSchema = new mongoose.Schema(
             enum: ["NET", "GATE", "CAT", "NEET", "JEE", "Other"]
           },
           score: String,
-          scoreCard: String
+          year: String,
+          documentUrl: String
         }
       ],
 
-      migrationCertificate: String
+      migrationUrl: String
     },
     financial_details: {
       scholarship: {

@@ -15,7 +15,7 @@ dotenv.config()
 
 connectDB()
 
-
+app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRouter)
 app.use("/api/student/", studentProfileRouter)
 app.use("/api/privilege/", requestAccessRouter)
